@@ -11,13 +11,13 @@ entity ram_block is
 
   port (clk : in std_logic;
 
-        addr_a      : in  std_logic_vector( ram_addr_size - 1 downto 0);
-        data_read_a : out std_logic_vector( wordWidth - 1     downto 0);
+        addr_a      : in  ram_addr_phys_t;
+        data_read_a : out byte;
 
         write_b      : in  std_logic;
-        addr_b       : in  std_logic_vector( ram_addr_size - 1 downto 0);
-        data_read_b  : out std_logic_vector( wordWidth - 1     downto 0);
-        data_write_b : in  std_logic_vector( wordWidth - 1     downto 0)
+        addr_b       : in  ram_addr_phys_t;
+        data_read_b  : out byte;
+        data_write_b : in  byte
 
     );
 

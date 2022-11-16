@@ -107,8 +107,10 @@ package riscv_types is
   constant ram_block_width     : natural := 8;
   constant ram_block_amount    : natural := 4;
   constant ram_addr_size       : natural := 14;
+  constant ram_addr_size_phys  : natural := 12; -- physical adress size of every ram block
 
   subtype ram_addr_t is std_logic_vector(ram_addr_size -1 downto 0);
+  subtype ram_addr_phys_t is std_logic_vector(ram_addr_size_phys -1 downto 0);
   type ram_t is array(0 to ram_block_size - 1) of byte;
 
   -- const for multiplexer sources
