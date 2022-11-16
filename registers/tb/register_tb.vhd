@@ -83,7 +83,7 @@ architecture Behavioral of register_tb is
 			end if;
 		
 			if r2_out /= std_logic_vector(to_unsigned(I+I, wordWidth)) then
-				report "Test to write to R2" & integer'image(I) & " failed!";
+				report "Test to write to R2 failed!";
 			else
 				report "Write to r2 test succesful!";
 			end if;
