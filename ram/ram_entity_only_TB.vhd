@@ -1,3 +1,10 @@
+-------------------------------------------------------------------------------------------------------------
+-- Project: VHDL_CPU
+-- Author: Maher Popal & Tobias Blumers 
+-- Description: 
+-- Additional Comments:
+-------------------------------------------------------------------------------------------------------------
+
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
@@ -80,34 +87,41 @@ begin
     wait for 5 ns;
 
     -- 
-    for I in 0 to 83 loop
+    for I in 0 to 100 loop -- von 8 bis 12 damit die Zahlen etwas größer werden
       
       -- loop for filling the ram
       writeEnable(0) <= '1';
-      for J in 0 to ram_addr_size - 1 loop
-        dataAdr <= std_logic_vector(to_unsigned(J, ram_addr_size));
-        dataIn <= std_logic_vector(to_unsigned(J + ram_addr_size * I, wordWidth));
-        wait for 10 ns;
+      for J in 0 to 300 - 5 loop
+        if (J mod 5) = 0 then -- Alle 5 Bytes ein Wort speichern (4 Bytes). Es bleibt immer 1 Byte frei dazwischen
+          dataAdr <= std_logic_vector(to_unsigned(J, ram_addr_size));
+          dataIn <= std_logic_vector(to_unsigned(J + ram_block_size * I, wordWidth));
+          wait for 10 ns;
+        end if;
+        
       end loop;
     
       writeEnable(0) <= '0';
 
       -- loop for reading the ram and checking for equality to expected values
-      for J in 0 to ram_addr_size - 1 loop
-        dataAdr <= std_logic_vector(to_unsigned(J, ram_addr_size));
+      for J in 0 to 300 - 5 loop -- ram_block_size
+        if (J mod 5) = 0 then
+          dataAdr <= std_logic_vector(to_unsigned(J, ram_addr_size));
 
-        wait for 8 ns; -- some time is needed before the dataout is accurate
+          wait for 8 ns; -- some time is needed before the dataout is accurate
 
-        -- test for equality
-        if dataOut = std_logic_vector(to_unsigned(J + ram_addr_size * I, wordWidth)) then
-          testCorrect <= '1';
-        else
-          testCorrect <= '0';
-          write(lineBuffer, string'("Fehler aufgetreten"));
-          writeline(output, lineBuffer);
+          -- test for equality
+          if dataOut = std_logic_vector(to_unsigned(J + ram_block_size * I, wordWidth)) then
+            testCorrect <= '1';
+          else
+            testCorrect <= '0';
+            write(lineBuffer, string'("Fehler aufgetreten"));
+            writeline(output, lineBuffer);
+          end if;
+
+          wait for 2 ns;
         end if;
 
-        wait for 2 ns;
+        
       end loop;
 
 
