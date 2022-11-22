@@ -2,7 +2,7 @@
 -- Project: VHDL_CPU
 -- Author: Maher Popal & Tobias Blumers 
 -- Description: 
--- Additional Comments:
+-- Additional Comments: Orginal Datei wurde vorgegeben. Wir haben sie an unsere Ansprüche angepasst
 -------------------------------------------------------------------------------------------------------------
 
 library ieee;
