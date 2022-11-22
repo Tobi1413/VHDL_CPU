@@ -23,31 +23,41 @@ end alu;
 
 
 architecture Behavioral of alu is
+begin
   process(alu_opc, input1, input2)
   begin
-    case alu_opc is
-      when uNOP  => -- no operation?
+  
+    case alu_opc is	
+      when uNOP  => -- no operation
         result <= (others => '0'); -- alles auf 0 setzen
 
       when uADD  => -- Addieren
-        -- todo
+        result <= std_logic_vector(signed(input1) + signed(input2));
 
       when uSUB  => -- Subtrahieren
-        -- todo
+        result <= std_logic_vector(signed(input1) - signed(input2));
 
-      when uSLL  => -- Shift Left Locical
+      when uSLL  => -- Shift Left Logical
         result <= (input1 sll 1);
 
       when uSLT  => -- Set on Less Than (Test if less than)
-        -- todo
-
+        if signed(input1) < signed(input2) then
+			    result <= X"00000001";
+		    else
+			    result <= X"00000000";
+		    end if;
+          
       when uSLTU => -- Set on Less Than Unsigned(Test if less than)
-        -- todo
-
+        if unsigned(input1) < unsigned(input2) then
+			    result <= X"00000001";
+		    else
+			    result <= X"00000000";
+		    end if;
+          
       when uXOR  => -- XOR
         result <= (input1 xor input2);
 
-      when uSRL  => -- Shift Right Locical      |a|b|c|d|   mit   >>   wird zu   |0|a|b|c|
+      when uSRL  => -- Shift Right Logical      |a|b|c|d|   mit   >>   wird zu   |0|a|b|c|
         result <= (input1 srl 1);
 
       when uSRA  => -- Shift Right Arithmetic   |a|b|c|d|   mit   >>   wird zu   |a|a|b|c|
@@ -61,5 +71,7 @@ architecture Behavioral of alu is
 
       when others =>
         result <= (others => '0'); -- alles auf 0 setzen
-
+	end case;
+	
   end process;
+ end architecture;
