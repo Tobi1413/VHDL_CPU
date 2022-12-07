@@ -91,7 +91,7 @@ package riscv_types is
   constant store_H : funct3 := "001"; -- half
   constant store_W : funct3 := "010"; -- word
 
-  -- constants for the funct3 field for alu
+  -- R-Type: constants for the funct3 field for alu
   constant alu_ADD  : funct3 := "000"; -- add
   constant alu_SUB  : funct3 := "000"; -- sub also needs alu_flag set
   constant alu_SLT  : funct3 := "010"; -- set less than
