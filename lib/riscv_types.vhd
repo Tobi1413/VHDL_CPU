@@ -15,7 +15,7 @@ package riscv_types is
   type uOP is (uNOP, uLUI, uAUIPC, uJAL, uJALR, uBEQ, uBNE, uBLT, uBGE, uBLTU, uBGEU,
                uLB, uLH, uLW, uLBU, uLHU, uSB, uSH, uSW, uADDI, uSLTI, uSLTIU,
                uXORI, uORI, uANDI, uSLLI, uSRLI, uSRAI, uADD, uSUB, uSLL, uSLT,
-               uSLTU, uXOR, uSRL, uSRA, uOR, uAND, uECALL);
+               uSLTU, uXOR, uSRL, uSRA, uOR, uAND, uECALL); -- 39 Instructions
 
   -- internal opCodes/enums for alu instructions
   type aluOP is (uNOP, uADD, uSUB, uSLL, uSLT, uSLTU, uXOR, uSRL, uSRA, uOR, uAND); 
@@ -54,19 +54,19 @@ package riscv_types is
   -- constants for the 7bit opcode field in a normal 32bit instruction.
   -- for 32bit size instructions the last 2 bits always have to be '1' 
   -- xxxxx11
-  constant opc_LUI    : opcode := "0110111"; -- load upper immediate
-  constant opc_AUIPC  : opcode := "0010111"; -- add upper immediate to pc
-  constant opc_JAL    : opcode := "1101111"; -- jump and link
-  constant opc_JALR   : opcode := "1100111"; -- jump and link register
-  constant opc_BRANCH : opcode := "1100011"; -- branch --
-  constant opc_LOAD   : opcode := "0000011"; -- load --
-  constant opc_STORE  : opcode := "0100011"; -- store --
-  constant opc_ALUI   : opcode := "0010011"; -- alu immediate --
-  constant opc_ALUR   : opcode := "0110011"; -- alu register --
-  constant opc_FENCE  : opcode := "0001111"; -- fence
-  constant opc_ECALL  : opcode := "1110011"; -- ecall
-  constant opc_EBREAK : opcode := "1110011"; -- break
-  constant opc_NULL   : opcode := "0000000"; -- invalid
+  constant opc_LUI    : opcode := "0110111"; -- U-Type    load upper immediate
+  constant opc_AUIPC  : opcode := "0010111"; -- U-Type    add upper immediate to pc
+  constant opc_JAL    : opcode := "1101111"; -- J-Type    jump and link
+  constant opc_JALR   : opcode := "1100111"; -- I-Type    jump and link register
+  constant opc_BRANCH : opcode := "1100011"; -- B-Type    branch --
+  constant opc_LOAD   : opcode := "0000011"; -- I-Type    load --
+  constant opc_STORE  : opcode := "0100011"; -- S-Type    store --
+  constant opc_ALUI   : opcode := "0010011"; -- I-Type    alu immediate --
+  constant opc_ALUR   : opcode := "0110011"; -- R-Type    alu register --
+  constant opc_FENCE  : opcode := "0001111"; -- I-Type ?? fence -- vorhanden?
+  constant opc_ECALL  : opcode := "1110011"; -- I-Type    ecall
+  constant opc_EBREAK : opcode := "1110011"; -- I-Type ?? break -- vorhanden?
+  constant opc_NULL   : opcode := "0000000"; --           invalid
 
   -- constant for alu double funct3 entrys. (e.g. SUB instruction)
   constant alu_flag : std_logic_vector(7 - 1 downto 0) := "0100000";
@@ -79,7 +79,7 @@ package riscv_types is
   constant branch_LTU : funct3 := "110";
   constant branch_GEU : funct3 := "111";
 
-  -- constants for the funct3 field on loads
+  -- I-Type: constants for the funct3 field on loads
   constant load_B   : funct3 := "000"; -- byte
   constant load_H   : funct3 := "001"; -- half
   constant load_W   : funct3 := "010"; -- word
