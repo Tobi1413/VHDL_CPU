@@ -28,7 +28,7 @@ begin
     case instruction(6 downto 0) is
       
       -- I-Type
-      when opc_JALR | opc_LOAD | opc_ALUI | opc_FENCE | opc_ECALL | opc_EBREAK =>
+      when opc_JALR | opc_LOAD | opc_ALUI | opc_FENCE | opc_ECALL =>
         immediate(31 downto 11) <= (others => instruction(31));
         immediate(10 downto  5) <= instruction(30 downto 25);
         immediate(4  downto  1) <= instruction(24 downto 21);

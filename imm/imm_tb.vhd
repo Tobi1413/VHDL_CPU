@@ -71,7 +71,7 @@ begin
     
     wait for 10 ns;
     
-   
+    
     assert immediate = "00000000000000000000000000000010" report "I Type: Test1 fehlgeschlagen!";
     report "Test1 I Type abgeschlossen";
 
@@ -95,7 +95,7 @@ begin
     opcode <= uBGE;
     
     wait for 10 ns;
-    
+
     assert immediate = "00000000000000000000100110100100" report "B type: Test3 fehlgeschlagen!";
     report "Test3 B Type abgeschlossen";
     
@@ -110,7 +110,7 @@ begin
     wait for 10 ns;
     
     assert immediate = "00000000000000000000010011010010" report "S type: Test4 fehlgeschlagen!";
-    report "Test4 S Type abgeschlossen";    
+    report "Test4 S Type abgeschlossen";
 
 
     -- imm                  rd   u-type
@@ -121,9 +121,9 @@ begin
     
     wait for 10 ns;
     
-    
-    assert immediate = "00000000000001001100010000001010" report "U type: Test5 fehlgeschlagen!";
-    report "Test5 U Type abgeschlossen";  
+
+    assert immediate = "01001100010000001010000000000000" report "U type: Test5 fehlgeschlagen!";
+    report "Test5 U Type abgeschlossen";
 
 
     
