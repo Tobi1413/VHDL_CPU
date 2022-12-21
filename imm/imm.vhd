@@ -15,7 +15,7 @@ use work.riscv_types.all;
 entity imm is
   port (
     instruction : in  instruction;
-    opcode      : in  uOP;
+--    opcode      : in  uOP; --nicht genutzt
     immediate   : out word
     );
 end imm;
@@ -23,7 +23,7 @@ end imm;
 architecture behavioral of imm is
 
 begin
-  process(instruction, opcode)
+  process(instruction)
   begin
     case instruction(6 downto 0) is
       

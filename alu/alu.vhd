@@ -14,7 +14,7 @@ use work.riscv_types.all;
 
 entity alu is
   port (
-    alu_opc : in  aluOP;  -- alu opcode.
+    alu_opc : in  uOP;  -- alu opcode. -- von aluOP zu uOP geändert, da ich keine Übersetzung zwischen den beiden implementieren möchte
     input1  : in  word;   -- input1 of alu (reg1 / pc address) rs1
     input2  : in  word;   -- input2 of alu (reg2 / immediate)  rs2
     result  : out word    -- alu output.
