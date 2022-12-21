@@ -17,8 +17,8 @@ end PC;
 
 architecture Behavioral of PC is
 
-signal addr_reg : ram_addr_t;
-signal addr_next: ram_addr_t;
+signal addr_reg : ram_addr_t := (others => '0');
+signal addr_next: ram_addr_t := (others => '0');
 
 begin
     process(clk)

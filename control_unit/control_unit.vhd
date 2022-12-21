@@ -15,20 +15,13 @@ use work.riscv_types.all;
 
 entity control_unit is
   port(
-    clk, reset, start : in std_logic;
-    
-    
-    ram_i_instructionAdr : in ram_addr_t;
-    ram_i_dataAdr : in ram_addr_t;
-    ram_i_writeEnable : in one_bit;
-    ram_i_dataIn : in word
-    
+    clk, reset : in std_logic
   );
 end control_unit;
 
 architecture Behavioral of control_unit is
 
-type state_t is (debug, fetch, state_decode, rtype, itype);
+type state_t is (start, fetch, state_decode, rtype, itype);
 signal state_reg , state_next : state_t;
 
 
@@ -65,10 +58,10 @@ signal pc_o_addr : ram_addr_t;
 
 
 -- RAM Signals
---signal ram_i_instructionAdr : ram_addr_t; --unused
---signal ram_i_dataAdr : ram_addr_t; --unused
---signal ram_i_writeEnable : one_bit;
---signal ram_i_dataIn : word; --unused
+signal ram_i_instructionAdr : ram_addr_t; --unused
+signal ram_i_dataAdr : ram_addr_t; --unused
+signal ram_i_writeEnable : one_bit;
+signal ram_i_dataIn : word; --unused
 
 signal ram_o_instruction : word;
 signal ram_o_dataOut : word;
@@ -94,7 +87,7 @@ begin
   transition : process (clk, reset)
   begin
     if (reset = '1') then
-      state_reg <= fetch; -- set initial state
+      state_reg <= start; -- set initial state
     elsif (rising_edge(clk)) then -- changes on rising edge
       state_reg <= state_next;
     end if;  
@@ -102,31 +95,27 @@ begin
   
   
   
-  next_state_proc: process(state_reg)
+  next_state_proc: process(state_reg, clk)
   begin
     case state_reg is
-      when debug => 
+      when start =>
         alu_i_input1          <= reg_o_r1_out;  --
         alu_i_input2          <= reg_o_r2_out;  --
         pc_i_en_pc(0)         <= '0';           -- 
         pc_i_doJump(0)        <= '0';           --
-        --ram_i_writeEnable(0)  <= '0';           --
+        ram_i_writeEnable(0)  <= '0';           --
         reg_i_en_reg_wb(0)    <= '0';           --
         reg_i_data_in         <= alu_o_result;  -- 
         reg_i_write_enable(0) <= '0';           --
         
-        if start /= '1' then
-          state_next <= debug;
-        else
-          state_next <= fetch;
-        end if;
+        state_next <= fetch;
     
       when fetch =>
         alu_i_input1          <= reg_o_r1_out;  --
         alu_i_input2          <= reg_o_r2_out;  --
-        pc_i_en_pc(0)         <= '1';           -- enable 1
+        pc_i_en_pc(0)         <= '0';           -- 
         pc_i_doJump(0)        <= '0';           --
-        --ram_i_writeEnable(0)  <= '0';           --
+        ram_i_writeEnable(0)  <= '0';           --
         reg_i_en_reg_wb(0)    <= '0';           --
         reg_i_data_in         <= alu_o_result;  -- 
         reg_i_write_enable(0) <= '0';           --
@@ -136,9 +125,9 @@ begin
       when state_decode =>
         alu_i_input1          <= reg_o_r1_out;  --
         alu_i_input2          <= reg_o_r2_out;  --
-        pc_i_en_pc(0)         <= '0';           --
+        pc_i_en_pc(0)         <= '0';           -- 
         pc_i_doJump(0)        <= '0';           --
-        --ram_i_writeEnable(0)  <= '0';           --
+        ram_i_writeEnable(0)  <= '0';           --
         reg_i_en_reg_wb(0)    <= '0';           --
         reg_i_data_in         <= alu_o_result;  -- 
         reg_i_write_enable(0) <= '0';
@@ -160,9 +149,9 @@ begin
     when rtype =>
       alu_i_input1          <= reg_o_r1_out;  --
       alu_i_input2          <= reg_o_r2_out;  --
-      pc_i_en_pc(0)         <= '0';           --
+      pc_i_en_pc(0)         <= '1';           -- enable pc
       pc_i_doJump(0)        <= '0';           --
-      --ram_i_writeEnable(0)  <= '0';           --
+      ram_i_writeEnable(0)  <= '0';           --
       reg_i_en_reg_wb(0)    <= '1';           -- on
       reg_i_data_in         <= alu_o_result;  -- 
       reg_i_write_enable(0) <= '1';           -- on
@@ -172,9 +161,9 @@ begin
     when itype =>
       alu_i_input1          <= reg_o_r1_out;     --
       alu_i_input2          <= imm_o_immediate;  -- output immediate
-      pc_i_en_pc(0)         <= '0';              --
+      pc_i_en_pc(0)         <= '1';              -- enable pc
       pc_i_doJump(0)        <= '0';              --
-      --ram_i_writeEnable(0)  <= '0';              --
+      ram_i_writeEnable(0)  <= '0';              --
       reg_i_en_reg_wb(0)    <= '1';              -- on
       reg_i_data_in         <= alu_o_result;     -- 
       reg_i_write_enable(0) <= '1';              -- on
@@ -187,7 +176,7 @@ begin
         alu_i_input2          <= reg_o_r2_out;  -- alu 2 input
         pc_i_en_pc(0)         <= '0';           -- pc enable
         pc_i_doJump(0)        <= '0';           -- pc jump enable
-        --ram_i_writeEnable(0)  <= '0';           -- ram write enable
+        ram_i_writeEnable(0)  <= '0';           -- ram write enable
         reg_i_en_reg_wb(0)    <= '0';           -- ?? enable 1
         reg_i_data_in         <= alu_o_result;  -- register data in
         reg_i_write_enable(0) <= '0';           -- ?? enable 2
@@ -234,12 +223,12 @@ begin
   ram : entity work.ram(behavioral)
     port map(
       clk => clk,
-      instructionAdr => ram_i_instructionAdr, --pc_o_addr,
-      dataAdr => ram_i_dataAdr, -- alu_o_result(13 downto 0),
+      instructionAdr => pc_o_addr,
+      dataAdr => alu_o_result(13 downto 0),
       
       writeEnable => ram_i_writeEnable,
       
-      dataIn => ram_i_dataIn, --reg_o_r2_out,
+      dataIn => reg_o_r2_out,
       instruction => ram_o_instruction,
       dataOut => ram_o_dataOut
     );

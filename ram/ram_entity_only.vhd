@@ -11,6 +11,7 @@ use ieee.numeric_std.all;
 
 library work;
 use work.riscv_types.all;
+use work.program.all;
 
 entity ram is
 
@@ -46,7 +47,7 @@ signal dataAdr_sig_2 : ram_addr_phys_t;
 signal dataAdr_sig_3 : ram_addr_phys_t;
 
 signal instruction_sig_0 : byte;
-signal instruction_sig_1: byte;
+signal instruction_sig_1 : byte;
 signal instruction_sig_2 : byte;
 signal instruction_sig_3 : byte;
 
@@ -60,10 +61,32 @@ signal dataIn_sig_1 : byte;
 signal dataIn_sig_2 : byte;
 signal dataIn_sig_3 : byte;
 
+constant init_data_0 : ram_t := (X"02", X"02", X"ff", X"00", X"40",  others => (others => '0'));
+constant init_data_1 : ram_t := (X"07", X"b7", X"d7", X"24", X"87", others => (others => '0'));
+constant init_data_2 : ram_t := (X"87", X"87", X"87", X"04", X"d4", others => (others => '0'));
+constant init_data_3 : ram_t := (X"93", X"93", X"13", X"13", X"b3", others => (others => '0'));
+
+
+
 begin
+--  init_data_1 <= (others => (others => '0'));
+
+--  init_data_1(0)(7 downto 0) <= "01010100";
+--  init_data_1(1)(7 downto 0) <= "01110100";
+--  init_data_1(2)(7 downto 0) <= "10010100";
+  
+--  init_data_2(0)(7 downto 0) <= "00000100";
+--  init_data_2(1)(7 downto 0) <= "10000100";
+--  init_data_2(2)(7 downto 0) <= "00000101";
+  
+--  init_data_3(0)(7 downto 0) <= "00010011";
+--  init_data_3(1)(7 downto 0) <= "10010011";
+--  init_data_3(2)(7 downto 0) <= "00110011";
+  
   
 -- Erstellen der 4 RAM Bloecke
   ram0 : entity work.ram_block(behavioral)
+      generic map(initMem => init_data_0)
       port map( clk => clk,
                 addr_a => instructionAdr_sig_0,
                 data_read_a => instruction_sig_0,
@@ -73,6 +96,7 @@ begin
                 data_write_b => dataIn_sig_0);
                 
   ram1 : entity work.ram_block(behavioral)
+      generic map(initMem => init_data_1)
       port map( clk => clk,
                 addr_a => instructionAdr_sig_1,
                 data_read_a => instruction_sig_1,
@@ -82,6 +106,7 @@ begin
                 data_write_b => dataIn_sig_1);
  
   ram2 : entity work.ram_block(behavioral)
+      generic map(initMem => init_data_2)
       port map( clk => clk,
                 addr_a => instructionAdr_sig_2,
                 data_read_a => instruction_sig_2,
@@ -91,6 +116,7 @@ begin
                 data_write_b => dataIn_sig_2); 
                 
   ram3 : entity work.ram_block(behavioral)
+      generic map(initMem => init_data_3)
       port map( clk => clk,
                 addr_a => instructionAdr_sig_3,
                 data_read_a => instruction_sig_3,
@@ -102,10 +128,10 @@ begin
 
 -- Multiplexer zum Uebergeben der einzelnen Instruktions Adressen an die RAM Bloecke
     with instructionAdr(1 downto 0) select
-      instructionAdr_sig_0 <= std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 3))) + 0, ram_addr_size - 2)) when "00",
-                              std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 3))) + 1, ram_addr_size - 2)) when "01",
-                              std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 3))) + 1, ram_addr_size - 2)) when "10",
-                              std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 3))) + 1, ram_addr_size - 2)) when others;
+      instructionAdr_sig_0 <= std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 2))) + 0, ram_addr_size - 2)) when "00",
+                              std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 2))) + 1, ram_addr_size - 2)) when "01",
+                              std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 2))) + 1, ram_addr_size - 2)) when "10",
+                              std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 2))) + 1, ram_addr_size - 2)) when others;
 
     with instructionAdr(1 downto 0) select
       instructionAdr_sig_1 <= std_logic_vector(to_unsigned(to_integer(unsigned(instructionAdr(ram_addr_size -1 downto 2))) + 0, ram_addr_size - 2)) when "00",
