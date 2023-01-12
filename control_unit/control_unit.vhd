@@ -21,7 +21,7 @@ end control_unit;
 
 architecture Behavioral of control_unit is
 
-type state_t is (start, fetch, state_decode, rtype, itype);
+type state_t is (start, fetch, state_decode, rtype, itype_alu, itype_jalr_1, itype_jalr_2, itype_load_1, itype_load_2);
 signal state_reg , state_next : state_t;
 
 
@@ -94,7 +94,7 @@ begin
   end process;
   
   
-  
+  -- Endlicher Automat
   next_state_proc: process(state_reg, clk)
   begin
     case state_reg is
@@ -132,13 +132,19 @@ begin
         reg_i_data_in         <= alu_o_result;  -- 
         reg_i_write_enable(0) <= '0';
         
-        case ram_o_instruction(6 downto 0) is
+        case decode_o_op_code is
           
-          when opc_ALUR =>
+          when uADD | uSUB | uSLL | uSLT | uSLTU | uXOR | uSRL | uSRA | uOR | uAND  =>
             state_next <= rtype;
             
-          when opc_JALR | opc_LOAD | opc_ALUI | opc_FENCE | opc_ECALL =>
-            state_next <= itype;
+          when uADDI | uSLTI | uSLTIU | uXORI | uORI | uANDI | uSLLI | uSRLI | uSRAI =>
+            state_next <= itype_alu;
+            
+          when uJALR =>
+            state_next <= itype_jalr_1;
+            
+          when uLB | uLH | uLW | uLBU | uLHU =>
+            state_next <= itype_load_1;
             
             
           when others =>
@@ -146,6 +152,7 @@ begin
             
         end case;
     
+    -- Alle R-Type befehle
     when rtype =>
       alu_i_input1          <= reg_o_r1_out;  --
       alu_i_input2          <= reg_o_r2_out;  --
@@ -158,7 +165,8 @@ begin
       
       state_next <= fetch;
     
-    when itype =>
+    -- itype alle instructions für die ALU
+    when itype_alu =>
       alu_i_input1          <= reg_o_r1_out;     --
       alu_i_input2          <= imm_o_immediate;  -- output immediate
       pc_i_en_pc(0)         <= '1';              -- enable pc
@@ -170,16 +178,77 @@ begin
       
       state_next <= fetch;
     
+    -- uJALR Instruction
+    when itype_jalr_1 =>
+      alu_i_input1          <= reg_o_r1_out;     -- 
+      alu_i_input2          <= imm_o_immediate;  -- output immediate
+      pc_i_en_pc(0)         <= '1';              -- pc enable
+      pc_i_doJump(0)        <= '0';              --
+      ram_i_writeEnable(0)  <= '0';              --
+      reg_i_en_reg_wb(0)    <= '0';              --
+      reg_i_data_in         <= alu_o_result;     -- 
+      reg_i_write_enable(0) <= '0';              --
+      
+      state_next <= itype_jalr_2;
+      
+     
+     when itype_jalr_2 =>
+      alu_i_input1                  <= reg_o_r1_out;     -- 
+      alu_i_input2                  <= imm_o_immediate;  -- output immediate
+      pc_i_en_pc(0)                 <= '0';              -- 
+      pc_i_doJump(0)                <= '1';              -- pc jump enable
+      ram_i_writeEnable(0)          <= '0';              --
+      reg_i_en_reg_wb(0)            <= '1';              -- ?? enable 1
+      reg_i_data_in(13 downto 0)    <= pc_o_addr;        -- pc addr in
+      reg_i_write_enable(0)         <= '1';              -- ?? enable 2
+      
+      state_next <= fetch;
+      
+      -- Load Befehle
+      when itype_load_1 =>
+        alu_i_input1          <= reg_o_r1_out;      -- 
+        alu_i_input2          <= imm_o_immediate;   -- output immediate
+        pc_i_en_pc(0)         <= '0';               --
+        pc_i_doJump(0)        <= '0';               -- 
+        ram_i_writeEnable(0)  <= '0';               -- 
+        reg_i_en_reg_wb(0)    <= '0';               -- 
+        reg_i_data_in         <= alu_o_result;      -- 
+        reg_i_write_enable(0) <= '0';               -- 
+      
+        state_next <= itype_load_2;
+        
+      when itype_load_2 =>
+        alu_i_input1          <= reg_o_r1_out;      -- 
+        alu_i_input2          <= imm_o_immediate;   -- output immediate
+        pc_i_en_pc(0)         <= '1';               --
+        pc_i_doJump(0)        <= '0';               -- 
+        ram_i_writeEnable(0)  <= '0';               -- 
+        reg_i_en_reg_wb(0)    <= '1';               -- ?? enable 1
+        
+        reg_i_write_enable(0) <= '1';               -- ?? enable 2
+       
+       -- zwischen den unterschiedlichen Load instructions unterscheiden
+        case decode_o_op_code is
+          when uLB  => reg_i_data_in <= std_logic_vector(resize(signed(ram_o_dataOut(31 downto 24)), 32));
+          when uLH  => reg_i_data_in <= std_logic_vector(resize(signed(ram_o_dataOut(31 downto 16)), 32));
+          when uLW  => reg_i_data_in <= ram_o_dataOut;
+          when uLBU => reg_i_data_in <= "000000000000000000000000" & ram_o_dataOut(31 downto 24);
+          when uLHU => reg_i_data_in <= "0000000000000000" & ram_o_dataOut(31 downto 16);
+          when others => reg_i_data_in <= ram_o_dataOut;
+        end case;
+      
+        state_next <= fetch;
+    
     
       when others =>
-        alu_i_input1          <= reg_o_r1_out;  -- alu 1 input
-        alu_i_input2          <= reg_o_r2_out;  -- alu 2 input
-        pc_i_en_pc(0)         <= '0';           -- pc enable
-        pc_i_doJump(0)        <= '0';           -- pc jump enable
-        ram_i_writeEnable(0)  <= '0';           -- ram write enable
-        reg_i_en_reg_wb(0)    <= '0';           -- ?? enable 1
-        reg_i_data_in         <= alu_o_result;  -- register data in
-        reg_i_write_enable(0) <= '0';           -- ?? enable 2
+        alu_i_input1          <= reg_o_r1_out;      -- alu 1 input
+        alu_i_input2          <= reg_o_r2_out;      -- alu 2 input
+        pc_i_en_pc(0)         <= '0';               -- pc enable
+        pc_i_doJump(0)        <= '0';               -- pc jump enable
+        ram_i_writeEnable(0)  <= '0';               -- ram write enable
+        reg_i_en_reg_wb(0)    <= '0';               -- ?? enable 1
+        reg_i_data_in         <= alu_o_result;      -- register data in
+        reg_i_write_enable(0) <= '0';               -- ?? enable 2
       
         state_next <= fetch;
     

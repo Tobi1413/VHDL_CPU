@@ -61,10 +61,10 @@ signal dataIn_sig_1 : byte;
 signal dataIn_sig_2 : byte;
 signal dataIn_sig_3 : byte;
 
-constant init_data_0 : ram_t := (X"02", X"02", X"ff", X"00", X"40",  others => (others => '0'));
-constant init_data_1 : ram_t := (X"07", X"b7", X"d7", X"24", X"87", others => (others => '0'));
-constant init_data_2 : ram_t := (X"87", X"87", X"87", X"04", X"d4", others => (others => '0'));
-constant init_data_3 : ram_t := (X"93", X"93", X"13", X"13", X"b3", others => (others => '0'));
+constant init_data_0 : ram_t := (X"00", X"00", X"04", X"00", X"00",  others => (others => '0'));
+constant init_data_1 : ram_t := (X"5a", X"1a", X"04", X"00", X"00", others => (others => '0'));
+constant init_data_2 : ram_t := (X"09", X"0a", X"84", X"00", X"00", others => (others => '0'));
+constant init_data_3 : ram_t := (X"93", X"13", X"67", X"00", X"00", others => (others => '0'));
 
 
 
