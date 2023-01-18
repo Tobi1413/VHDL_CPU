@@ -21,7 +21,7 @@ end control_unit;
 
 architecture Behavioral of control_unit is
 
-type state_t is (start, fetch, state_decode, rtype, itype_alu, itype_jalr_1, itype_jalr_2, itype_load_1, itype_load_2);
+type state_t is (start, fetch, state_decode, rtype, itype_alu, itype_jalr_1, itype_jalr_2, itype_load_1, itype_load_2, btype, btype_2);
 signal state_reg , state_next : state_t;
 
 
@@ -145,6 +145,8 @@ begin
             
           when uLB | uLH | uLW | uLBU | uLHU =>
             state_next <= itype_load_1;
+		  when uBLT | uBLTU | uBGE |  uBGEU =>
+			state_next <= btype;
             
             
           when others =>
@@ -226,6 +228,47 @@ begin
         reg_i_en_reg_wb(0)    <= '1';               -- ?? enable 1
         
         reg_i_write_enable(0) <= '1';               -- ?? enable 2
+		
+	  when btype =>		
+	    alu_i_input1                  <= reg_o_r1_out;     -- output r1   
+        alu_i_input2                  <= reg_o_r2_out;     -- output r2             -- 
+        pc_i_doJump(0)                <= '0';  			   -- pc jump disabled
+        reg_i_en_reg_wb(0)            <= '0';              -- ?? disabled
+        reg_i_data_in(13 downto 0)    <= pc_o_addr;        -- pc addr in
+        reg_i_write_enable(0)         <= '0';              -- ?? disabled
+	  
+	  	if(alu_o_result(0)) then
+		
+			if(decode_o_op_code = uBLT | decode_o_op_code = uBLTU ) then
+				state_next <= btype_2;
+				pc_i_en_pc(0)   <= '0'; 
+			else
+				pc_i_en_pc(0)  <= '1'; 
+				state_next <= fetch;
+			end if;
+				
+		else
+			if(decode_o_op_code = uBGE | decode_o_op_code = uBGEU) then
+				state_next <= btype_2;
+				pc_i_en_pc(0)   <= '0'; 
+			else
+				pc_i_en_pc(0)  <= '1'; 
+				state_next <= fetch;
+			end if;
+
+		end if;
+		
+	  when btype_2 =>
+	    alu_i_input1                  <= pc_o_addr;        -- pc output
+        alu_i_input2                  <= imm_o_immediate;  -- output immediate 
+        pc_i_en_pc(0)                 <= '0';              -- disabled en_pc
+        pc_i_doJump(0)                <= '1';  			   -- pc jump enabled
+        reg_i_en_reg_wb(0)            <= '0';              -- 
+        reg_i_data_in(13 downto 0)    <= pc_o_addr;        -- 
+        reg_i_write_enable(0)         <= '0';              -- 
+		
+	  state_next <= fetch;
+		
        
        -- zwischen den unterschiedlichen Load instructions unterscheiden
         case decode_o_op_code is
