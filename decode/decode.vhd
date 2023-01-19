@@ -136,14 +136,14 @@ begin
          reg_2 <= inst_in(24 downto 20);
          reg_w <= "00000";
          case inst_in(14 downto 12) is 
-			when branch_EQ <= uBEQ;
-			when branch_NE <= uBNE;
-			when branch_LT =>op_code <= uBLT;
-			when branch_GE =>op_code <= uBGE;
-			when branch_BLTU =>op_code <= uBLTU;
-			when branch_GEU =>op_code <= uBGEU;
-			when others =>op_code <= uNOP:	
-		end case;
+			     when branch_EQ   => op_code <= uBEQ;
+			     when branch_NE   => op_code <= uBNE;
+			     when branch_LT   => op_code <= uBLT;
+			     when branch_GE   => op_code <= uBGE;
+			     when branch_LTU  => op_code <= uBLTU;
+			     when branch_GEU  => op_code <= uBGEU;
+			     when others      => op_code <= uNOP;
+		     end case;
 		
 -- invalid opcode
       when others =>

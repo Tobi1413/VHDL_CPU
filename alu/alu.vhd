@@ -31,7 +31,7 @@ begin
       when uNOP  => -- no operation
         result <= (others => '0'); -- alles auf 0 setzen
 
-      when uADD | uADDI | uJALR => -- Addieren
+      when uADD | uADDI | uJALR | uBLT | uBGE | uBLTU | uBGEU => -- Addieren
         result <= std_logic_vector(signed(input1) + signed(input2));
 
       when uSUB  => -- Subtrahieren
@@ -41,14 +41,14 @@ begin
         result <= std_logic_vector(unsigned(input1) sll to_integer(unsigned(input2(4 downto 0))));
         --(std_logic_vector(unsigned(input1)) sll 1);
 
-      when uSLT | uSLTI | uBLT | uBGE   => -- Set on Less Than (Test if less than)
+      when uSLT | uSLTI => -- Set on Less Than (Test if less than)
         if signed(input1) < signed(input2) then
 			    result <= X"00000001";
 		    else
 			    result <= X"00000000";
 		    end if;
           
-      when uSLTU | uSLTIU | uBLTU | uBGEU => -- Set on Less Than Unsigned(Test if less than)
+      when uSLTU | uSLTIU => -- Set on Less Than Unsigned(Test if less than)
         if unsigned(input1) < unsigned(input2) then
 			    result <= X"00000001";
 		    else

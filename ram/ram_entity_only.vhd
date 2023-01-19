@@ -15,7 +15,13 @@ use work.program.all;
 
 entity ram is
 
-  generic (width : integer := 4);
+  generic(
+    width : integer := 4;
+    init_data_0 : ram_t := (others => (others => '0'));
+    init_data_1 : ram_t := (others => (others => '0'));
+    init_data_2 : ram_t := (others => (others => '0'));
+    init_data_3 : ram_t := (others => (others => '0'))
+  );
 
   port (
     clk              : in  std_logic;
@@ -61,11 +67,22 @@ signal dataIn_sig_1 : byte;
 signal dataIn_sig_2 : byte;
 signal dataIn_sig_3 : byte;
 
-constant init_data_0 : ram_t := (X"00", X"00", X"04", X"00", X"00",  others => (others => '0'));
-constant init_data_1 : ram_t := (X"5a", X"1a", X"04", X"00", X"00", others => (others => '0'));
-constant init_data_2 : ram_t := (X"09", X"0a", X"84", X"00", X"00", others => (others => '0'));
-constant init_data_3 : ram_t := (X"93", X"13", X"67", X"00", X"00", others => (others => '0'));
+-- signal b01 : word := X"005a0993";
+-- signal b02 : word := X"001a0a13";
+-- signal b03 : word := X"013a5463";
+-- signal b04 : word := X"005a0a13";
+-- signal b05 : word := X"002a0a13";
+-- signal b06 : word := X"003a0a13";
 
+-- constant init_data_0 : ram_t := (b01(31 downto 24), b02(31 downto 24), b03(31 downto 24), b04(31 downto 24), b05(31 downto 24), b06(31 downto 24), others => (others => '0'));
+-- constant init_data_1 : ram_t := (b01(23 downto 16), b02(23 downto 16), b03(23 downto 16), b04(23 downto 16), b05(23 downto 16), b06(23 downto 16), others => (others => '0'));
+-- constant init_data_2 : ram_t := (b01(15 downto  8), b02(15 downto  8), b03(15 downto  8), b04(15 downto  8), b05(15 downto  8), b06(15 downto  8), others => (others => '0'));
+-- constant init_data_3 : ram_t := (b01( 7 downto  0), b02( 7 downto  0), b03( 7 downto  0), b04( 7 downto  0), b05( 7 downto  0), b06( 7 downto  0), others => (others => '0'));
+
+-- constant init_data_0 : ram_t := (X"00", X"00", X"04", X"00", X"00",  others => (others => '0'));
+-- constant init_data_1 : ram_t := (X"5a", X"1a", X"04", X"00", X"00", others => (others => '0'));
+-- constant init_data_2 : ram_t := (X"09", X"0a", X"84", X"00", X"00", others => (others => '0'));
+-- constant init_data_3 : ram_t := (X"93", X"13", X"67", X"00", X"00", others => (others => '0'));
 
 
 begin
