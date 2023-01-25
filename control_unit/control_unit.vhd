@@ -27,7 +27,7 @@ end control_unit;
 
 architecture Behavioral of control_unit is
 
-type state_t is (start, fetch, state_decode, rtype, itype_alu, itype_jalr_1, itype_jalr_2, itype_load_1, itype_load_2, btype);
+type state_t is (start, fetch, state_decode, rtype, itype_alu, itype_jalr_1, itype_jalr_2, itype_load_1, itype_load_2, btype, s_store_1);
 signal state_reg , state_next : state_t;
 
 
@@ -154,6 +154,9 @@ begin
             
 		      when uBLT | uBLTU | uBGE |  uBGEU =>
             state_next <= btype;
+            
+          when uSB | uSH | uSW =>
+            state_next <= s_store_1;
              
           when others =>
             state_next <= fetch; -- kein unterstütze instruction
@@ -207,7 +210,8 @@ begin
         pc_i_doJump(0)                <= '1';              -- pc jump enable
         ram_i_writeEnable(0)          <= '0';              --
         reg_i_en_reg_wb(0)            <= '1';              -- ?? enable 1
-        reg_i_data_in(13 downto 0)    <= pc_o_addr;        -- pc addr in
+        reg_i_data_in(13 downto  0)   <= pc_o_addr;        -- pc addr in
+        reg_i_data_in(31 downto 14)   <= (others => '0');  -- pc other's bits
         reg_i_write_enable(0)         <= '1';              -- ?? enable 2
       
         state_next <= fetch;
@@ -249,9 +253,12 @@ begin
 		
 	    when btype =>		
         alu_i_input1(13 downto 0)     <= pc_o_addr;        -- output r1
+        alu_i_input1(31 downto 14)    <= (others => '0');  -- alu other bits
         alu_i_input2                  <= imm_o_immediate;  -- output r2
+        ram_i_writeEnable(0)          <= '0';              --
         reg_i_en_reg_wb(0)            <= '0';              -- ?? disabled
-        reg_i_data_in(13 downto 0)    <= pc_o_addr;        -- pc addr in
+        reg_i_data_in(13 downto  0)   <= pc_o_addr;        -- pc addr in
+        reg_i_data_in(31 downto 14)   <= (others => '0');  -- pc other bits
         reg_i_write_enable(0)         <= '0';              -- ?? disabled
 		    
 		    case decode_o_op_code is
@@ -288,11 +295,25 @@ begin
 				      pc_i_en_pc(0)   <= '0';
 		        end if;
 		      when others =>
+		        pc_i_doJump(0)  <= '0';
+		        pc_i_en_pc(0)   <= '1';
 		    end case;
 		    
 		    state_next <= fetch;
 		
-    
+		  when s_store_1 =>
+        alu_i_input1          <= reg_o_r1_out;      -- 
+        alu_i_input2          <= imm_o_immediate;   -- imm in
+        pc_i_en_pc(0)         <= '1';               -- pc enable
+        pc_i_doJump(0)        <= '0';               -- 
+        ram_i_writeEnable(0)  <= '1';               -- ram enable
+        reg_i_en_reg_wb(0)    <= '0';               -- 
+        reg_i_data_in         <= alu_o_result;      -- 
+        reg_i_write_enable(0) <= '0';               -- 
+      
+        state_next <= fetch;
+      
+      
       when others =>
         alu_i_input1          <= reg_o_r1_out;      -- alu 1 input
         alu_i_input2          <= reg_o_r2_out;      -- alu 2 input
@@ -354,9 +375,10 @@ begin
       instructionAdr => pc_o_addr,
       dataAdr => alu_o_result(13 downto 0),
       
+      op_code => decode_o_op_code,
       writeEnable => ram_i_writeEnable,
-      
       dataIn => reg_o_r2_out,
+      
       instruction => ram_o_instruction,
       dataOut => ram_o_dataOut
     );

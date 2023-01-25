@@ -31,7 +31,7 @@ begin
       when uNOP  => -- no operation
         result <= (others => '0'); -- alles auf 0 setzen
 
-      when uADD | uADDI | uJALR | uBLT | uBGE | uBLTU | uBGEU => -- Addieren
+      when uADD | uADDI | uJALR | uBLT | uBGE | uBLTU | uBGEU | uSB | uSH | uSW => -- Addieren
         result <= std_logic_vector(signed(input1) + signed(input2));
 
       when uSUB  => -- Subtrahieren

@@ -27,13 +27,15 @@ architecture behavioral of control_unit_tb is
     variable text_line : line;
     variable ram_instruction : std_logic_vector(31 downto 0);
     variable ram_data : ram_t;
+    variable size : integer := 64;
   begin
-    for i in 0 to 64 - 1 loop
+--    ram_data := (others => (others => '0'));
+    for i in 0 to size - 1 loop
       readline(text_file, text_line);
       hread(text_line, ram_instruction);
       ram_data(i) := ram_instruction((ram_block * 8) - 1 downto (ram_block * 8) - 8);
     end loop;
-    
+    ram_data(size to ram_block_size - 1) := (others => (others => '0'));
     return ram_data;
   end function;
   
