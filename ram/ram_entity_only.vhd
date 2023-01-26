@@ -74,24 +74,22 @@ signal dataIn_sig_1 : byte;
 signal dataIn_sig_2 : byte;
 signal dataIn_sig_3 : byte;
 
+ constant b01 : word := X"7ff90913";
+ constant b02 : word := X"01290933";
+ constant b03 : word := X"01290933";
+ constant b04 : word := X"01290933";
+ constant b05 : word := X"01290933";
+ constant b06 : word := X"01290933";
 
+ constant init_data_0_c : ram_t := (b01(31 downto 24), b02(31 downto 24), b03(31 downto 24), b04(31 downto 24), b05(31 downto 24), b06(31 downto 24), others => (others => '0'));
+ constant init_data_1_c : ram_t := (b01(23 downto 16), b02(23 downto 16), b03(23 downto 16), b04(23 downto 16), b05(23 downto 16), b06(23 downto 16), others => (others => '0'));
+ constant init_data_2_c : ram_t := (b01(15 downto  8), b02(15 downto  8), b03(15 downto  8), b04(15 downto  8), b05(15 downto  8), b06(15 downto  8), others => (others => '0'));
+ constant init_data_3_c : ram_t := (b01( 7 downto  0), b02( 7 downto  0), b03( 7 downto  0), b04( 7 downto  0), b05( 7 downto  0), b06( 7 downto  0), others => (others => '0'));
 
--- signal b01 : word := X"005a0993";
--- signal b02 : word := X"001a0a13";
--- signal b03 : word := X"013a5463";
--- signal b04 : word := X"005a0a13";
--- signal b05 : word := X"002a0a13";
--- signal b06 : word := X"003a0a13";
-
--- constant init_data_0 : ram_t := (b01(31 downto 24), b02(31 downto 24), b03(31 downto 24), b04(31 downto 24), b05(31 downto 24), b06(31 downto 24), others => (others => '0'));
--- constant init_data_1 : ram_t := (b01(23 downto 16), b02(23 downto 16), b03(23 downto 16), b04(23 downto 16), b05(23 downto 16), b06(23 downto 16), others => (others => '0'));
--- constant init_data_2 : ram_t := (b01(15 downto  8), b02(15 downto  8), b03(15 downto  8), b04(15 downto  8), b05(15 downto  8), b06(15 downto  8), others => (others => '0'));
--- constant init_data_3 : ram_t := (b01( 7 downto  0), b02( 7 downto  0), b03( 7 downto  0), b04( 7 downto  0), b05( 7 downto  0), b06( 7 downto  0), others => (others => '0'));
-
--- constant init_data_0 : ram_t := (X"00", X"00", X"04", X"00", X"00",  others => (others => '0'));
--- constant init_data_1 : ram_t := (X"5a", X"1a", X"04", X"00", X"00", others => (others => '0'));
--- constant init_data_2 : ram_t := (X"09", X"0a", X"84", X"00", X"00", others => (others => '0'));
--- constant init_data_3 : ram_t := (X"93", X"13", X"67", X"00", X"00", others => (others => '0'));
+-- constant init_data_0_c : ram_t := (X"00", X"00", X"04", X"00", X"00",  others => (others => '0'));
+-- constant init_data_1_c : ram_t := (X"5a", X"1a", X"04", X"00", X"00", others => (others => '0'));
+-- constant init_data_2_c : ram_t := (X"09", X"0a", X"84", X"00", X"00", others => (others => '0'));
+-- constant init_data_3_c : ram_t := (X"93", X"13", X"67", X"00", X"00", others => (others => '0'));
 
 
 begin
@@ -112,7 +110,7 @@ begin
   
 -- Erstellen der 4 RAM Bloecke
   ram0 : entity work.ram_block(behavioral)
-      generic map(initMem => init_data_0)
+      generic map(initMem => init_data_0_c)
       port map( clk => clk,
                 addr_a => instructionAdr_sig_0,
                 data_read_a => instruction_sig_0,
@@ -122,7 +120,7 @@ begin
                 data_write_b => dataIn_sig_0);
                 
   ram1 : entity work.ram_block(behavioral)
-      generic map(initMem => init_data_1)
+      generic map(initMem => init_data_1_c)
       port map( clk => clk,
                 addr_a => instructionAdr_sig_1,
                 data_read_a => instruction_sig_1,
@@ -132,7 +130,7 @@ begin
                 data_write_b => dataIn_sig_1);
  
   ram2 : entity work.ram_block(behavioral)
-      generic map(initMem => init_data_2)
+      generic map(initMem => init_data_2_c)
       port map( clk => clk,
                 addr_a => instructionAdr_sig_2,
                 data_read_a => instruction_sig_2,
@@ -142,7 +140,7 @@ begin
                 data_write_b => dataIn_sig_2); 
                 
   ram3 : entity work.ram_block(behavioral)
-      generic map(initMem => init_data_3)
+      generic map(initMem => init_data_3_c)
       port map( clk => clk,
                 addr_a => instructionAdr_sig_3,
                 data_read_a => instruction_sig_3,
