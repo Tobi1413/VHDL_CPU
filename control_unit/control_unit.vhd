@@ -21,7 +21,10 @@ entity control_unit is
     ram_init_data_3 : ram_t := (others => (others => '0'))
   );
   port(
-    clk, reset : in std_logic
+    clk100Mhz : in std_logic;
+    nreset : in std_logic;
+--    led_0,led_1,led_2,led_3,led_4,led_5,led_6,led_7,led_8,led_9,led_10,led_11,led_12,led_13,led_14,led_15 : out std_logic
+    led : out std_logic_vector(15 downto 0)
   );
 end control_unit;
 
@@ -84,24 +87,40 @@ signal reg_i_write_enable : one_bit;
 signal reg_o_r1_out : word;
 signal reg_o_r2_out : word;
 
+-- Clock signals
+signal clk_wiz_out : std_logic;
 
+component clk_wiz_0
+port
+ (-- Clock in ports
+  -- Clock out ports
+  clk_out1          : out    std_logic;
+  -- Status and control signals
+  reset             : in     std_logic;
+  clk_in1           : in     std_logic
+ );
+end component;
 
 
 begin
+  
+  
 
 
-  transition : process (clk, reset)
+
+
+  transition : process (clk_wiz_out, nreset)
   begin
-    if (reset = '1') then
+    if (nreset = '1') then
       state_reg <= start; -- set initial state
-    elsif (rising_edge(clk)) then -- changes on rising edge
+    elsif (rising_edge(clk_wiz_out)) then -- changes on rising edge
       state_reg <= state_next;
     end if;  
   end process;
   
   
   -- Endlicher Automat
-  next_state_proc: process(state_reg, clk)
+  next_state_proc: process(state_reg, clk100Mhz)
   begin
     case state_reg is
       when start =>
@@ -317,7 +336,7 @@ begin
       when others =>
         alu_i_input1          <= reg_o_r1_out;      -- alu 1 input
         alu_i_input2          <= reg_o_r2_out;      -- alu 2 input
-        pc_i_en_pc(0)         <= '0';               -- pc enable
+        pc_i_en_pc(0)         <= '1';               -- pc enable
         pc_i_doJump(0)        <= '0';               -- pc jump enable
         ram_i_writeEnable(0)  <= '0';               -- ram write enable
         reg_i_en_reg_wb(0)    <= '0';               -- ?? enable 1
@@ -356,7 +375,7 @@ begin
   
   pc : entity work.pc(behavioral)
     port map(
-      clk => clk,
+      clk => clk_wiz_out,
       en_pc => pc_i_en_pc,
       addr_calc => alu_o_result(13 downto 0), -- addresse ist deutlich kleiner als output von alu
       doJump => pc_i_doJump,
@@ -371,7 +390,7 @@ begin
       init_data_3 => ram_init_data_3
     )
     port map(
-      clk => clk,
+      clk => clk_wiz_out,
       instructionAdr => pc_o_addr,
       dataAdr => alu_o_result(13 downto 0),
       
@@ -385,7 +404,10 @@ begin
     
     registers : entity work.registers(behavioral)
       port map(
-          clk => clk,
+      
+          led => led,
+          
+          clk => clk_wiz_out,
           en_reg_wb => reg_i_en_reg_wb,
           data_in => reg_i_data_in,
           wr_idx => decode_o_reg_w,
@@ -396,6 +418,15 @@ begin
           r2_out => reg_o_r2_out
       );
   
+  clk_wiz : clk_wiz_0
+   port map ( 
+  -- Clock out ports  
+   clk_out1 => clk_wiz_out,
+  -- Status and control signals                
+   reset => nreset,
+   -- Clock in ports
+   clk_in1 => clk100Mhz
+ );
 
 end architecture;
 
