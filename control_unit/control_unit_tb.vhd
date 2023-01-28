@@ -71,8 +71,8 @@ begin
       ram_init_data_3 => ram_init_data_3
     )
     port map(
-      clk => clk,
-      reset => reset
+      clk100Mhz => clk,
+      nreset => reset
     );
   
   

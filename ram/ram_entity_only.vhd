@@ -12,7 +12,6 @@ use ieee.numeric_std.all;
 
 library work;
 use work.riscv_types.all;
-use work.program.all;
 
 entity ram is
 

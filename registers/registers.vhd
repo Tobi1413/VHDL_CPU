@@ -13,6 +13,8 @@ entity registers is
 	generic (initReg : regFile := (others =>(others => '0')));
 	
   port (
+    led          : out std_logic_vector(15 downto 0);
+    
     clk          : in  std_logic;
     en_reg_wb    : in  one_bit;
     data_in      : in  word;
@@ -31,6 +33,10 @@ architecture Behavioral of registers is
 	signal store : regFile := initReg;
 
 begin
+
+  led(14 downto 0) <= store(18)(14 downto 0);
+  led(15) <= '1';
+
 	process(clk)
 	begin
 		if rising_edge(clk) then
