@@ -106,7 +106,7 @@ package riscv_types is
 -- regFile constants and type
   constant reg_adr_size : integer := 5;
   constant reg_size     : integer := 32;
-  type regFile is array (reg_size - 1 downto 0) of word;
+  type regFile is array (reg_size - 2 downto 0) of word; -- Register eins kleiner gemacht, damit das letzte für sw reserviert werden kann
 
   -- ram constants and type
   constant ram_size            : natural := 4096; -- amount of words

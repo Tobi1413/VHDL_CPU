@@ -23,14 +23,14 @@ entity control_unit is
   port(
     clk100Mhz : in std_logic;
     nreset : in std_logic;
---    led_0,led_1,led_2,led_3,led_4,led_5,led_6,led_7,led_8,led_9,led_10,led_11,led_12,led_13,led_14,led_15 : out std_logic
-    led : out std_logic_vector(15 downto 0)
+    led : out std_logic_vector(15 downto 0);
+    sw : in std_logic_vector(15 downto 0)
   );
 end control_unit;
 
-architecture Behavioral of control_unit is
+architecture behavioral of control_unit is
 
-type state_t is (start, fetch, state_decode, rtype, itype_alu, itype_jalr_1, itype_jalr_2, itype_load_1, itype_load_2, btype, s_store_1);
+type state_t is (start, fetch, state_decode, rtype, itype_alu, itype_jalr_1, itype_jalr_2, itype_jal_1, itype_jal_2, itype_load_1, itype_load_2, btype, btype_2, s_store_1);
 signal state_reg , state_next : state_t;
 
 
@@ -89,6 +89,10 @@ signal reg_o_r2_out : word;
 
 -- Clock signals
 signal clk_wiz_out : std_logic;
+signal locked      : std_logic;
+
+signal slow_clock : std_logic;
+signal counter : integer := 1;
 
 component clk_wiz_0
 port
@@ -96,7 +100,8 @@ port
   -- Clock out ports
   clk_out1          : out    std_logic;
   -- Status and control signals
-  reset             : in     std_logic;
+  resetn             : in     std_logic;
+  locked            : out    std_logic;
   clk_in1           : in     std_logic
  );
 end component;
@@ -104,14 +109,9 @@ end component;
 
 begin
   
-  
-
-
-
-
-  transition : process (clk_wiz_out, nreset)
+  transition : process (clk100Mhz ,clk_wiz_out, nreset)
   begin
-    if (nreset = '1') then
+    if (nreset = '0' or locked = '0') then
       state_reg <= start; -- set initial state
     elsif (rising_edge(clk_wiz_out)) then -- changes on rising edge
       state_reg <= state_next;
@@ -168,10 +168,13 @@ begin
           when uJALR =>
             state_next <= itype_jalr_1;
             
+          when uJAL =>
+            state_next <= itype_jal_1;
+            
           when uLB | uLH | uLW | uLBU | uLHU =>
             state_next <= itype_load_1;
             
-		      when uBLT | uBLTU | uBGE |  uBGEU =>
+		      when uBEQ | uBNE | uBLT | uBLTU | uBGE |  uBGEU =>
             state_next <= btype;
             
           when uSB | uSH | uSW =>
@@ -234,6 +237,35 @@ begin
         reg_i_write_enable(0)         <= '1';              -- ?? enable 2
       
         state_next <= fetch;
+        
+      -- uJAL Instruction
+      when itype_jal_1 =>
+        alu_i_input1(13 downto  0)  <= pc_o_addr;        -- pc output
+        alu_i_input1(31 downto 14)  <= (others => '0');  -- pc output
+        alu_i_input2                <= imm_o_immediate;  -- output immediate
+        pc_i_en_pc(0)               <= '0';              -- 
+        pc_i_doJump(0)              <= '0';              --
+        ram_i_writeEnable(0)        <= '0';              --
+        reg_i_en_reg_wb(0)          <= '0';              --
+        reg_i_data_in               <= alu_o_result;     -- 
+        reg_i_write_enable(0)       <= '0';              --
+      
+        state_next <= itype_jal_2;
+      
+     
+      when itype_jal_2 =>
+        alu_i_input1(13 downto  0)    <= pc_o_addr;        -- pc output
+        alu_i_input1(31 downto 14)    <= (others => '0');  -- pc output
+        alu_i_input2                  <= imm_o_immediate;  -- output immediate
+        pc_i_en_pc(0)                 <= '1';              -- enable pc
+        pc_i_doJump(0)                <= '1';              -- pc jump enable
+        ram_i_writeEnable(0)          <= '0';              --
+        reg_i_en_reg_wb(0)            <= '1';              -- ?? enable 1
+        reg_i_data_in(13 downto  0)   <= pc_o_addr;        -- pc addr in
+        reg_i_data_in(31 downto 14)   <= (others => '0');  -- pc other's bits
+        reg_i_write_enable(0)         <= '1';              -- ?? enable 2
+      
+        state_next <= fetch;
       
       -- Load Befehle
       when itype_load_1 =>
@@ -274,16 +306,45 @@ begin
         alu_i_input1(13 downto 0)     <= pc_o_addr;        -- output r1
         alu_i_input1(31 downto 14)    <= (others => '0');  -- alu other bits
         alu_i_input2                  <= imm_o_immediate;  -- output r2
+        pc_i_doJump(0)                <= '0';              --
+				pc_i_en_pc(0)                 <= '0';              --
         ram_i_writeEnable(0)          <= '0';              --
-        reg_i_en_reg_wb(0)            <= '0';              -- ?? disabled
-        reg_i_data_in(13 downto  0)   <= pc_o_addr;        -- pc addr in
-        reg_i_data_in(31 downto 14)   <= (others => '0');  -- pc other bits
-        reg_i_write_enable(0)         <= '0';              -- ?? disabled
+        reg_i_en_reg_wb(0)            <= '0';              -- 
+        reg_i_data_in                 <= alu_o_result;     -- 
+        reg_i_write_enable(0)         <= '0';              -- 
+		    
+		    
+		    state_next <= btype_2;
+		    
+		    when btype_2 =>		
+        alu_i_input1(13 downto 0)     <= pc_o_addr;        -- output r1
+        alu_i_input1(31 downto 14)    <= (others => '0');  -- alu other bits
+        alu_i_input2                  <= imm_o_immediate;  -- output r2
+        ram_i_writeEnable(0)          <= '0';              --
+        reg_i_en_reg_wb(0)            <= '0';              -- 
+        reg_i_data_in                 <= alu_o_result;     -- 
+        reg_i_write_enable(0)         <= '0';              -- 
 		    
 		    case decode_o_op_code is
-		      when uBLT  =>
+		      when uBEQ =>
+		        if (signed(reg_o_r1_out) = signed(reg_o_r2_out)) then
+		          pc_i_doJump(0)  <= '1';
+				      pc_i_en_pc(0)   <= '0'; -- pc jump disabled
+				    else
+				      pc_i_doJump(0)  <= '0';
+				      pc_i_en_pc(0)   <= '1';
+				    end if;
+		      when uBNE =>
+		        if (signed(reg_o_r1_out) = signed(reg_o_r2_out)) then
+		          pc_i_doJump(0)  <= '0';
+				      pc_i_en_pc(0)   <= '1';
+				    else
+				      pc_i_doJump(0)  <= '1'; 
+				      pc_i_en_pc(0)   <= '0';
+				    end if;		      
+		      when uBLT =>
 		        if(signed(reg_o_r1_out) < signed(reg_o_r2_out)) then
-		          pc_i_doJump(0)  <= '1';  --
+		          pc_i_doJump(0)  <= '1';
 				      pc_i_en_pc(0)   <= '0';
 				    else
 				      pc_i_doJump(0)  <= '0';  -- pc jump disabled
@@ -291,13 +352,13 @@ begin
 		        end if;
 		      when uBLTU =>
 		        if(unsigned(reg_o_r1_out) < unsigned(reg_o_r2_out)) then
-		          pc_i_doJump(0)  <= '1';  --
+		          pc_i_doJump(0)  <= '1';
 				      pc_i_en_pc(0)   <= '0';
 				    else
 				      pc_i_doJump(0)  <= '0';  -- pc jump disabled
 				      pc_i_en_pc(0)   <= '1';
 		        end if;
-		      when uBGE  =>
+		      when uBGE =>
 		        if(signed(reg_o_r1_out) < signed(reg_o_r2_out)) then
 		          pc_i_doJump(0)  <= '0';  --
 				      pc_i_en_pc(0)   <= '1';
@@ -406,6 +467,7 @@ begin
       port map(
       
           led => led,
+          sw => sw,
           
           clk => clk_wiz_out,
           en_reg_wb => reg_i_en_reg_wb,
@@ -423,7 +485,8 @@ begin
   -- Clock out ports  
    clk_out1 => clk_wiz_out,
   -- Status and control signals                
-   reset => nreset,
+   resetn => nreset,
+   locked => locked,
    -- Clock in ports
    clk_in1 => clk100Mhz
  );

@@ -39,18 +39,24 @@ architecture behavioral of control_unit_tb is
     return ram_data;
   end function;
   
-  signal ram_init_data_0 : ram_t := init_ram(4);
-  signal ram_init_data_1 : ram_t := init_ram(3);
-  signal ram_init_data_2 : ram_t := init_ram(2);
-  signal ram_init_data_3 : ram_t := init_ram(1);
+--  signal ram_init_data_0 : ram_t := init_ram(4);
+--  signal ram_init_data_1 : ram_t := init_ram(3);
+--  signal ram_init_data_2 : ram_t := init_ram(2);
+--  signal ram_init_data_3 : ram_t := init_ram(1);
+
+  signal ram_init_data_0 : ram_t := (others => (others => '0'));
+  signal ram_init_data_1 : ram_t := (others => (others => '0'));
+  signal ram_init_data_2 : ram_t := (others => (others => '0'));
+  signal ram_init_data_3 : ram_t := (others => (others => '0'));
   
-  
+  signal led : std_logic_vector(15 downto 0);
+  signal sw : std_logic_vector(15 downto 0):= "0000000000000000";
   
   --clk signal/clk period
 	signal clk : std_logic;
 	constant clk_period : time := 10 ns;
 	
-	signal reset : std_logic := '0';
+	signal reset : std_logic := '1';
 
 begin
   
@@ -72,7 +78,9 @@ begin
     )
     port map(
       clk100Mhz => clk,
-      nreset => reset
+      nreset => reset,
+      led => led,
+      sw => sw
     );
   
   
