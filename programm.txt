@@ -1,0 +1,101 @@
+# nur für Ripes. Kommt nicht ins Programm!!
+#addi t6, t6, 5
+#slli t6, t6, 6
+#addi t6, t6, 3
+#slli t6, t6, 3
+#addi t6, t6, 1
+
+setup:
+    addi s1, x0, 3
+    addi s5, x0, 91 # delay length, 91 default
+    slli s5, s5, 14 # 14 default, 17 --> ~1 sec
+    
+    # setup Prog1
+    addi s3, x0, 3 # Obere Grenze
+    slli s3, s3, 14
+    
+    # setup fibo
+    addi s2, x0, 0
+    addi a1, x0, 1
+    addi a3, x0, 1
+    slli a3, a3, 15
+    
+    # setup mult
+    addi s0, x0, 63 # Maske für linke Eingabe erstellen
+    slli s0, s0, 9  # Maske für linke Eingabe erstellen
+    
+    
+    jalr ra, x0, detProg
+
+
+prog1: # Programm1 Loop forwards 
+    addi a7, x0, 3
+    
+    # Loop forwards
+    slli a7, a7, 1
+    jalr ra, x0 delay
+    add s2, x0, a7 # zu LEDs Kopieren
+    bne s3, a7, -12
+
+# Programm1 Loop backwards
+    srli a7, a7, 1
+    jalr ra, x0, delay
+    add s2, x0, a7 # zu LEDs Kopieren
+    bne s1, a7, -12
+    
+    jalr ra, x0, detProg
+    
+fibo:
+    blt a3, s2, fibo_reset # Nächste Zahl berechnen
+    add a2, a1, a0 # Ausrechnen
+    add a0, x0, a1 # Verschieben
+    add a1, x0, a2 # Verschieben
+    jalr ra, x0, delay
+    jalr ra, x0, delay
+    jalr ra, x0, delay
+    jalr ra, x0, delay
+    add s2, x0, a2 # zu LEDs Kopieren
+    jalr ra, x0, detProg
+    
+fibo_reset:
+    addi s2, x0, 0 # Resetten
+    addi a0, x0, 0
+    addi a1, x0, 1 # Resetten
+    jalr x0, x0, fibo # Von vorne beginnen
+    
+mult:
+    andi t2, t6, 504 # t2 mit rechtem input füllen
+    srli t2, t2, 3   # bits nach rechts shiften
+    and t1, t6, s0   # t1 mit linkem  input füllen
+    srli t1, t1, 9   # bits nach rechts shiften
+    addi t0, x0, 0   # counter resetten
+    addi tp, x0, 0   # temp resetten
+    
+    beq t1, t0, mult_display # genug addiert
+    add tp, tp, t2 # t2 + t2
+    addi t0, t0, 1 # counter +1
+    jal x0, -12 # Nächste addition
+    
+mult_display:
+    add s2, x0, tp # zu LEDs Kopieren
+    jalr ra, x0, detProg
+
+delay:
+    addi s4, x0, 0 # Reset counter
+    addi s4, s4, 1 # count +1
+    bgeu s5, s4, -4 
+    jalr x0, ra, 0 # return
+
+detProg: # entscheidet welches Programm genutzt wird
+    andi t5, t6, 7 # Programm code in t5 kopieren
+    
+    addi t4, x0, 0
+    beq t5, t4, prog1 # Springe zum Programm 1
+    
+    addi t4, x0, 1
+    beq t5, t4, fibo # Springe zum Programm: fibo
+    
+    addi t4, x0, 2
+    beq t5, t4, mult # Springe zum Programm: mult
+    
+    jalr x0, x0, detProg
